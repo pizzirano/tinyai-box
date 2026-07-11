@@ -1,0 +1,11 @@
+# /etc/systemd/system/tinyai-monitor.timer
+# Roda o diagnóstico a cada 5 minutos; logs em: journalctl -t tinyai-monitor
+[Unit]
+Description=Timer do monitor de recursos TinyAI Box
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

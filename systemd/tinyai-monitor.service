@@ -1,0 +1,9 @@
+# /etc/systemd/system/tinyai-monitor.service
+[Unit]
+Description=Monitor de recursos do TinyAI Box
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/tinyai-box/scripts/monitor.sh
+Restart=on-failure

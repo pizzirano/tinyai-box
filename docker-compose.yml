@@ -1,0 +1,86 @@
+# TinyAI Box — sobe TUDO com: docker compose up -d
+# Alvo: TV Box ARMv7 (1-4GB RAM) rodando Armbian/Debian.
+# Configuração via .env (copie .env.example -> .env).
+
+services:
+
+  scheduler:
+    build: ./scheduler
+    image: tinyai/scheduler:latest
+    container_name: tinyai-scheduler
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      WHISPER_URL: http://whisper:9000
+      LLM_LOCAL_URL: http://llm-local:8080
+      PIPER_URL: http://piper:5000
+    depends_on:
+      - llm-local
+      - whisper
+      - piper
+    # Precisa ler /proc e /sys do host para observabilidade real:
+    volumes:
+      - /proc/meminfo:/proc_host/meminfo:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/saude').raise_for_status()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  llm-local:
+    # llama.cpp server com TinyLlama 1.1B Q4_K_M (~700MB de RAM em uso)
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: tinyai-llm
+    restart: unless-stopped
+    command: >
+      -m /models/tinyllama-1.1b-chat-q4_k_m.gguf
+      --host 0.0.0.0 --port 8080
+      -c 1024 -t ${LLM_THREADS:-4}
+    volumes:
+      - modelos:/models
+    deploy:
+      resources:
+        limits:
+          memory: 1200M   # protege o resto do sistema em uma box de 2GB
+
+  whisper:
+    # STT — whisper.cpp com modelo tiny (pt), leve o bastante para ARMv7
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: tinyai-whisper
+    restart: unless-stopped
+    environment:
+      ASR_MODEL: tiny
+      ASR_ENGINE: openai_whisper
+    deploy:
+      resources:
+        limits:
+          memory: 700M
+
+  piper:
+    # TTS local em português
+    image: rhasspy/wyoming-piper:latest
+    container_name: tinyai-piper
+    restart: unless-stopped
+    command: --voice pt_BR-faber-medium
+    volumes:
+      - piper-dados:/data
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+
+  # OTA simples e reversível: watchtower atualiza containers quando há
+  # nova imagem no registry. Desligue removendo este serviço.
+  watchtower:
+    image: containrrr/watchtower
+    container_name: tinyai-ota
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 --cleanup   # checa 1x por dia
+
+volumes:
+  modelos:
+  piper-dados:

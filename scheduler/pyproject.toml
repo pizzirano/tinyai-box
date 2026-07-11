@@ -1,0 +1,9 @@
+[project]
+name = "tinyai-scheduler"
+version = "1.0.0"
+description = "Scheduler do TinyAI Box: roteia prompts entre voz, LLM local e OpenRouter"
+requires-python = ">=3.11"
+dependencies = ["fastapi", "uvicorn", "httpx", "python-multipart"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

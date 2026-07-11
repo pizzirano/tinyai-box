@@ -1,0 +1,22 @@
+site_name: TinyAI Box
+docs_dir: docs
+theme:
+  name: material
+  language: pt-BR
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+nav:
+  - Início: index.md
+  - Arquitetura: arquitetura.md
+  - Módulos:
+      - Scheduler: modulos/scheduler.md
+      - IA local: modulos/ai.md
+      - DevOps: modulos/devops.md
+      - Embedded/Linux: modulos/embedded.md
+  - ADRs:
+      - ADR-001 Camadas: adr/ADR-001-arquitetura-em-camadas.md
+      - ADR-002 Roteamento: adr/ADR-002-roteamento-por-heuristica.md
+      - ADR-003 OTA: adr/ADR-003-ota-com-watchtower.md
